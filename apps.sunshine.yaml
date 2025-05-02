@@ -1,0 +1,9 @@
+sunshine:
+  module: sunshine
+  class: Sunshine
+  priority: 10 # Priority should be higher than apps using the corresponding entity
+  entity: sensor.sunshine_threshold # Entity to be updated in HASS
+  floor: 40000    # Minimum brightness threshold (winter)
+  cap: 70000      # Maximum brightness threshold (summer)
+  buffer: 5000   # Minimum threshold at sunrise/sunset
+  DEBUG: True    # Enable debugging
