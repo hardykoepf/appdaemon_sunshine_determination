@@ -18,50 +18,30 @@ template:
 
 
 class Sunshine(Hass):
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(Sunshine, cls).__new__(cls)
-            # Set initialized flag
-            cls._instance._initialized = False
-        return cls._instance
-
-    def __init__(self, *args, **kwargs):
-        # Only initialize once
-        if not self._initialized:
-            super().__init__(*args, **kwargs)
-            self.azimuth = 0
-            self.elevation = 0
-            self.brightness = 0
-            self.last_update = None
-            self._initialized = True
-            print("Initialized Sunshine singleton")
     
     def initialize(self):
         """Initialize the Sunshine app."""
-        if not hasattr(self, 'app_initialized'):
-            self.floor = int(self.args.get("floor", 10000))
-            self.cap = int(self.args.get("cap", 70000))
-            self.buffer = int(self.args.get("buffer", 10000))
-            self.debug_mode = bool(self.args.get("debug", False))
+        self.log(f"Initializing ...")
 
-            if self.args.get('entity'):
-                if not self.entity_exists(self.args.get('entity')):
-                    raise ValueError(f"Entity {self.args.get('entity')} doesn't exist in HASS. Please generate!")
-            else:
-                raise ValueError(f"Invalid configuration. Sunshine needs valid 'entity' to store results.")
+        self.floor = int(self.args.get("floor", 10000))
+        self.cap = int(self.args.get("cap", 70000))
+        self.buffer = int(self.args.get("buffer", 10000))
+        self.debug_mode = bool(self.args.get("debug", False))
 
-            
-            # Listen to sun changes and calculate new with every change
-            self.listen_state(self.update_brightness, "sun.sun", attribute = "all")
+        if self.args.get('entity'):
+            if not self.entity_exists(self.args.get('entity')):
+                raise ValueError(f"Entity {self.args.get('entity')} doesn't exist in HASS. Please generate!")
+        else:
+            raise ValueError(f"Invalid configuration. Sunshine needs valid 'entity' to store results.")
 
-            # First time start, manually triggering logic to not have to wait for first sun trigger
-            sun_state = self.get_state("sun.sun", attribute="all")
-            self.update_brightness(entity="manual_start", attribute={},old="",new=sun_state)
+        # Listen to sun changes and calculate new with every change
+        self.listen_state(self.update_brightness, "sun.sun", attribute = "all")
 
-            self.app_initialized = True
-            self.debug("AppDaemon initialization completed")
+        # First time start, manually triggering logic to not have to wait for first sun trigger
+        sun_state = self.get_state("sun.sun", attribute="all")
+        self.update_brightness(entity="manual_start", attribute={},old="",new=sun_state)
+
+        self.log("Initialization completed")
 
     def update_brightness(self, entity, attribute, old, new, *args, **kwargs):
         """Calculate and update brightness threshold."""
